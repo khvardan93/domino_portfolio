@@ -1,45 +1,92 @@
 <!DOCTYPE html>
-<html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity Web Player | Domino</title>
-  </head>
-  <body style="text-align: center; padding: 0; border: 0; margin: 0;">
-    <canvas id="unity-canvas" width=960 height=600 tabindex="-1" style="width: 960px; height: 600px; background: #231F20"></canvas>
-    <script src="Build/1197159a2a936ac236861127f02b1d96.loader.js"></script>
-    <script>
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
+<html lang="hy">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Domino</title>
+  <link rel="stylesheet" href="TemplateData/style.css">
+</head>
+<body>
+  <!-- The canvas always fills the window; the game's camera adapts to any aspect. -->
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
 
-        var canvas = document.querySelector("#unity-canvas");
-        canvas.style.width = "100%";
-        canvas.style.height = "100%";
-        canvas.style.position = "fixed";
+  <div id="loader">
+    <div id="mark"></div>
+    <div id="title">ԲԱԿԻ ԴՈՄԻՆՈ</div>
+    <div id="subtitle">C O U R T Y A R D &nbsp; D O M I N O</div>
+    <div id="bar"><div id="fill"></div></div>
+  </div>
+  <div id="warning"></div>
 
-        document.body.style.textAlign = "left";
+  <script>
+    // Facebook Instant Games: only load the SDK when we run inside Facebook.
+    var insideFacebook = /fbsbx\.com|facebook\.com|apps\.fbsbx/.test(document.referrer + location.hostname) ||
+                         new URLSearchParams(location.search).has('fb');
 
-      }
+    function makeShareImage() {
+      try {
+        var c = document.createElement('canvas'); c.width = 600; c.height = 315;
+        var g = c.getContext('2d');
+        g.fillStyle = '#7E1F33'; g.fillRect(0, 0, 600, 315);
+        g.fillStyle = '#F2A33C'; g.fillRect(0, 250, 600, 8);
+        g.fillStyle = '#F6EEE2'; g.textAlign = 'center';
+        g.font = 'bold 64px serif'; g.fillText('ԲԱԿԻ ԴՈՄԻՆՈ', 300, 150);
+        g.font = '24px sans-serif'; g.fillText('Courtyard domino', 300, 205);
+        return c.toDataURL('image/png');
+      } catch (e) { return ''; }
+    }
+    window.bakyiShareImage = makeShareImage();
 
-      createUnityInstance(document.querySelector("#unity-canvas"), {
-        arguments: [],
-        dataUrl: "Build/1212108b4b3712fe3d77db92f24331ed.data.unityweb",
-        frameworkUrl: "Build/881851ce41560d263f6c4649a72e0ded.framework.js.unityweb",
-        codeUrl: "Build/f67ecb008dbdd312bf6eed655456604c.wasm.unityweb",
-        streamingAssetsUrl: "StreamingAssets",
+    function startUnity() {
+      var canvas = document.querySelector('#unity-canvas');
+      var fill = document.querySelector('#fill');
+      var loader = document.querySelector('#loader');
+
+      var config = {
+        dataUrl: 'Build/d068bf7226fe6737a0692babc81e8c51.data.unityweb',
+        frameworkUrl: 'Build/881851ce41560d263f6c4649a72e0ded.framework.js.unityweb',
+        codeUrl: 'Build/f67ecb008dbdd312bf6eed655456604c.wasm.unityweb',
+        streamingAssetsUrl: 'StreamingAssets',
         companyName: "DefaultCompany",
         productName: "Domino",
         productVersion: "1.0",
-        // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
-        // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
-      }).then((unityInstance) => {
-      }).catch((message) => {
-        alert(message);
-      });
-    </script>
-  </body>
+        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        showBanner: function (msg, type) {
+          var w = document.querySelector('#warning');
+          w.textContent = msg; w.style.display = 'block';
+          if (type !== 'error') setTimeout(function () { w.style.display = 'none'; }, 5000);
+        }
+      };
+
+      var script = document.createElement('script');
+      script.src = 'Build/1197159a2a936ac236861127f02b1d96.loader.js';
+      script.onload = function () {
+        createUnityInstance(canvas, config, function (progress) {
+          fill.style.width = (progress * 100) + '%';
+          if (window.bakyiFbReady) FBInstant.setLoadingProgress(Math.round(progress * 100));
+        }).then(function (instance) {
+          window.unityInstance = instance;
+          loader.classList.add('done');
+          setTimeout(function () { loader.style.display = 'none'; }, 500);
+        }).catch(function (message) { alert(message); });
+      };
+      document.body.appendChild(script);
+    }
+
+    if (insideFacebook) {
+      var fb = document.createElement('script');
+      fb.src = 'https://connect.facebook.net/en_US/fbinstant.7.1.js';
+      fb.onload = function () {
+        FBInstant.initializeAsync().then(function () {
+          window.bakyiFbReady = true;
+          startUnity();
+        }).catch(function () { startUnity(); });
+      };
+      fb.onerror = startUnity;
+      document.head.appendChild(fb);
+    } else {
+      startUnity();
+    }
+  </script>
+</body>
 </html>
