@@ -43,9 +43,9 @@
       var loader = document.querySelector('#loader');
 
       var config = {
-        dataUrl: 'Build/8de5e9b2ecdef744803b72374e6a7fbe.data.unityweb',
-        frameworkUrl: 'Build/c921478309cb72ecb6d4e721ac16447e.framework.js.unityweb',
-        codeUrl: 'Build/ce266fd67f88359ca387d183cac85443.wasm.unityweb',
+        dataUrl: 'Build/2279e14dd56419f3201ff712891b5f2b.data.unityweb',
+        frameworkUrl: 'Build/985959af3198f3d2609664ac45027d1e.framework.js.unityweb',
+        codeUrl: 'Build/8a557814ad3db5cafbe09d83d53f493d.wasm.unityweb',
         streamingAssetsUrl: 'StreamingAssets',
         companyName: "DefaultCompany",
         productName: "Domino",
@@ -59,7 +59,7 @@
       };
 
       var script = document.createElement('script');
-      script.src = 'Build/844bacb31b8c30fc5c1334e89001d31b.loader.js';
+      script.src = 'Build/b2719290ea268bf285b3ae00bb7c3fc8.loader.js';
       script.onload = function () {
         createUnityInstance(canvas, config, function (progress) {
           fill.style.width = (progress * 100) + '%';
